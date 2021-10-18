@@ -1,5 +1,7 @@
+USE TSQLV4;
 
 -- 3
+-- Write a query that returns employees who did not place orders on or after May 1, 2016:
 SELECT  o.empid, o.firstName, o.lastname
 FROM HR.Employees o
 WHERE o.empid NOT IN (
@@ -9,6 +11,7 @@ WHERE o.empid NOT IN (
 );
 
 -- 4
+-- Write a query that returns countries where there are customers but not employees:
 SELECT DISTINCT o.country
 FROM Sales.Customers o
 WHERE o.country NOT IN (
@@ -18,6 +21,7 @@ WHERE o.country NOT IN (
 
 
 -- 5
+-- Write a query that returns for each customer all orders placed on the customer’s last day of activity:
 SELECT o.custid, o.orderid, o.orderdate, o.empid
 FROM Sales.Orders o 
 WHERE o.orderdate =
@@ -27,8 +31,23 @@ WHERE o.orderdate =
     WHERE o.custid = i.custid
 )
 
--- 6
+-- 5
+SELECT custid, orderid, empid, orderdate
+FROM
+(
+    SELECT 
+        custid, 
+        orderid, 
+        empid,
+        MAX(orderdate) OVER(PARTITION BY custid) as orderdate,
+        ROW_NUMBER() OVER(PARTITION BY custid ORDER BY orderdate DESC) AS rn 
+    FROM Sales.Orders
+) aa 
+WHERE rn = 1
 
+
+-- 6
+-- Write a query that returns customers who placed orders in 2015 but not in 2016:
 SELECT o.custid, o.companyname
 FROM Sales.Customers o 
 WHERE EXISTS 
@@ -50,6 +69,7 @@ AND NOT EXISTS
 
 
 --7
+-- Write a query that returns customers who ordered product 12
 
 WITH aa AS(
 SELECT DISTINCT o.custid
@@ -85,6 +105,7 @@ WHERE EXISTS
 
 
 -- 8: Running total
+-- Write a query that calculates a running-total quantity for each customer and month
 WITH aa AS (
     SELECT OD.orderid, OD.qty, o.orderdate, o.custid,
         datefromparts(year(o.orderdate), month(o.orderdate), 1) as ordermonth
@@ -114,6 +135,8 @@ FROM Sales.CustOrders AS O1
 ORDER BY custid, ordermonth;
 
 -- 10
+-- 1. Write a query that computes the date of the customer’s previous order.
+-- 2. Compute the difference between the date returned by the first step and the current order date.
 
 SELECT custid, orderdate, orderid, diff 
 FROM 
@@ -123,7 +146,7 @@ FROM
         orderdate,
         orderid,
         lag(orderdate) over (order by custid, orderdate) as lag,
-        datediff(day, lag(orderdate) over (partition by custid order by orderdate), orderdate) as diff
+        datediff(day, (lag(orderdate) over (partition by custid order by orderdate)), orderdate) as diff
     FROM Sales.Orders AS o1
 
 ) aa
@@ -151,20 +174,6 @@ DATEDIFF
     orderdate) AS diff
 FROM Sales.Orders AS o1
 ORDER BY custid, orderdate, orderid;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
