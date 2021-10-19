@@ -138,20 +138,13 @@ ORDER BY custid, ordermonth;
 -- 1. Write a query that computes the date of the customer’s previous order.
 -- 2. Compute the difference between the date returned by the first step and the current order date.
 
-SELECT custid, orderdate, orderid, diff 
-FROM 
-(
-    SELECT 
-        custid,
-        orderdate,
-        orderid,
-        lag(orderdate) over (order by custid, orderdate) as lag,
-        datediff(day, (lag(orderdate) over (partition by custid order by orderdate)), orderdate) as diff
+SELECT 
+    custid,
+    orderdate,
+    orderid,
+    datediff(day, (lag(orderdate) over (partition by custid order by orderdate)), orderdate) as diff
     FROM Sales.Orders AS o1
-
-) aa
 ORDER BY custid, orderdate;
-
 
 --10
 
